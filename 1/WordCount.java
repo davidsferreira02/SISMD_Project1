@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.LinkedHashMap;
 
-public class WordCount1 {
+public class WordCount {
   static final int maxPages = 100000;
-  static final String fileName= "enwiki.xml";
+  static final String fileName = "enwiki.xml";
 
   private static final HashMap<String, Integer> counts = 
     new HashMap<String, Integer>();
@@ -14,12 +14,12 @@ public class WordCount1 {
   public static void main(String[] args) throws Exception {
 
     long start = System.currentTimeMillis();
-    Iterable<Page> pages = new Pages(maxPages, fileName);
+    Iterable<Page2> pages = new Pages2(maxPages, fileName);
     int processedPages = 0;
-    for(Page page: pages) {
+    for(Page2 page: pages) {
       if(page == null)
         break;
-      Iterable<String> words = new Words(page.getText());
+      Iterable<String> words = new Words2(page.getText());
       for (String word: words)
         if(word.length()>1 || word.equals("a") || word.equals("I"))
           countWord(word);
