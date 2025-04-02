@@ -7,7 +7,7 @@ import java.util.Map;
 public class WordCount2 {
     static final int maxPages = 100000;
     static final String fileName = "enwiki.xml";
-    static final int NUMBER_THREADS = 5;
+    static final int NUMBER_THREADS = 30;
 
     private static final ConcurrentHashMap<String, Integer> counts = new ConcurrentHashMap<>();
 
@@ -34,8 +34,13 @@ public class WordCount2 {
                                     countWord(word);
                                 }
                             }
+                            try {
+                                Thread.sleep(5);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
                         }, "Thread-" + i);
-                        System.out.println(threads[i].getName() + " a processar: " + page.getTitle());
+                        System.out.println(threads[i].getName() + " a processar: " + page.getTitle() + "with text:" + page.getText());
                         threads[i].start();
                         assigned = true;
                         break;
