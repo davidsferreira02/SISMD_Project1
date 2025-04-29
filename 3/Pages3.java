@@ -4,12 +4,12 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.FileInputStream;
 import java.util.Iterator;
 
-class Pages2 implements Iterable<Page3> {
+class Pages3 implements Iterable<Page3> {
 
   private final int maxPages;
   private final String fileName;
 
-  public Pages2(int maxPages, String fileName) {
+  public Pages3(int maxPages, String fileName) {
     this.maxPages = maxPages;
     this.fileName = fileName;
   }

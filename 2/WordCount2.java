@@ -15,10 +15,10 @@ public class WordCount2 {
         Thread[] threads = new Thread[NUMBER_THREADS];
 
         long start = System.currentTimeMillis();
-        Iterable<Page2> pages = new Pages2(maxPages, fileName);
+        Iterable<Page3> pages = new Pages3(maxPages, fileName);
         int processedPages = 0;
 
-        for (Page2 page : pages) {
+        for (Page3 page : pages) {
             if (page == null) break;
 
             boolean assigned = false;
@@ -28,7 +28,7 @@ public class WordCount2 {
                     if (threads[i] == null || !threads[i].isAlive()) {
 
                         threads[i] = new Thread(() -> {
-                            Iterable<String> words = new Words2(page.getText());
+                            Iterable<String> words = new Words3(page.getText());
                             for (String word : words) {
                                 if (word.length() > 1 || word.equals("a") || word.equals("I")) {
                                     countWord(word);
