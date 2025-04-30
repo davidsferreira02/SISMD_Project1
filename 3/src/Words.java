@@ -1,11 +1,11 @@
 import java.text.BreakIterator;
 import java.util.Iterator;
 
-class Words3 implements Iterable<String> {
+class Words implements Iterable<String> {
 
   private final String text;
 
-  public Words3(String text) {
+  public Words(String text) {
     this.text = text;
   }
 

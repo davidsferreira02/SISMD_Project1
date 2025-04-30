@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class WordCount2 {
+public class WordCount {
     static final int maxPages = 100000;
     static final String fileName = "enwiki.xml";
     static final int NUMBER_THREADS = 30;
@@ -15,10 +15,10 @@ public class WordCount2 {
         Thread[] threads = new Thread[NUMBER_THREADS];
 
         long start = System.currentTimeMillis();
-        Iterable<Page3> pages = new Pages3(maxPages, fileName);
+        Iterable<Page> pages = new Pages(maxPages, fileName);
         int processedPages = 0;
 
-        for (Page3 page : pages) {
+        for (Page page : pages) {
             if (page == null) break;
 
             boolean assigned = false;
@@ -28,7 +28,7 @@ public class WordCount2 {
                     if (threads[i] == null || !threads[i].isAlive()) {
 
                         threads[i] = new Thread(() -> {
-                            Iterable<String> words = new Words3(page.getText());
+                            Iterable<String> words = new Words(page.getText());
                             for (String word : words) {
                                 if (word.length() > 1 || word.equals("a") || word.equals("I")) {
                                     countWord(word);

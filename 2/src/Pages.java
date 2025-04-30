@@ -4,17 +4,17 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.FileInputStream;
 import java.util.Iterator;
 
-class Pages2 implements Iterable<Page3> {
+class Pages implements Iterable<Page> {
 
   private final int maxPages;
   private final String fileName;
 
-  public Pages2(int maxPages, String fileName) {
+  public Pages(int maxPages, String fileName) {
     this.maxPages = maxPages;
     this.fileName = fileName;
   }
 
-  private class PageIterator implements Iterator<Page3> {
+  private class PageIterator implements Iterator<Page> {
 
     private XMLEventReader reader;
     private int remainingPages;
@@ -29,7 +29,7 @@ class Pages2 implements Iterable<Page3> {
       return remainingPages > 0; 
     }
 
-    public Page3 next() {
+    public Page next() {
       try {
         XMLEvent event;
         String title = "";
@@ -49,7 +49,7 @@ class Pages2 implements Iterable<Page3> {
                 } else if (event.isEndElement()) {
                   if (event.asEndElement().getName().getLocalPart().equals("page")) {
                     --remainingPages;
-                    return new Page3(title, text);
+                    return new Page(title, text);
                   }
                 }
               }
@@ -68,7 +68,7 @@ class Pages2 implements Iterable<Page3> {
     public void remove() { throw new UnsupportedOperationException(); }
   }
 
-  public Iterator<Page3> iterator() {
+  public Iterator<Page> iterator() {
     try {
       return new PageIterator();
     } catch (Exception e) {
