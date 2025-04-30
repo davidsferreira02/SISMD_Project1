@@ -24,10 +24,10 @@ public class WordCountRecursiveTask extends RecursiveTask<Map<String, Integer>> 
             int mid = pages.size() / 2;
             WordCountRecursiveTask left = new WordCountRecursiveTask(pages.subList(0, mid));
             WordCountRecursiveTask right = new WordCountRecursiveTask(pages.subList(mid, pages.size()));
-            left.fork(); // processa lado esquerdo em paralelo
-            Map<String, Integer> rightResult = right.compute(); // processa lado direito
-            Map<String, Integer> leftResult = left.join(); // espera resultado do lado esquerdo
-            return merge(leftResult, rightResult); // junta os mapas
+            left.fork();
+            Map<String, Integer> rightResult = right.compute();
+            Map<String, Integer> leftResult = left.join();
+            return merge(leftResult, rightResult);
         }
     }
 
