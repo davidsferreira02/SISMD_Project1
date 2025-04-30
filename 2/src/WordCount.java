@@ -1,5 +1,4 @@
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -67,7 +66,7 @@ public class WordCount {
         counts.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEachOrdered(x -> commonWords.put(x.getKey(), x.getValue()));
-        commonWords.entrySet().stream().limit(3).collect(Collectors.toList())
+        commonWords.entrySet().stream().limit(3).toList()
                 .forEach(x -> System.out.println("Word: '" + x.getKey() + "' with total " + x.getValue() + " occurrences!"));
     }
 

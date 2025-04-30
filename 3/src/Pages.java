@@ -16,7 +16,7 @@ class Pages implements Iterable<Page> {
 
   private class PageIterator implements Iterator<Page> {
 
-    private XMLEventReader reader;
+    private final XMLEventReader reader;
     private int remainingPages;
 
     public PageIterator() throws Exception {

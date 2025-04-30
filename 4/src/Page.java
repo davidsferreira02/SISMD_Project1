@@ -1,9 +1,8 @@
 
 
-
-class Page {
-  private final String title;
-  private final String text;
+public class Page {
+  private String title;
+  private String text;
 
   public Page(String title, String text) { this.title = title; this.text = text; }
 

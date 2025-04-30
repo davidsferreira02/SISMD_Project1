@@ -4,7 +4,7 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.FileInputStream;
 import java.util.Iterator;
 
-class Pages implements Iterable<Page> {
+public class Pages implements Iterable<Page> {
 
   private final int maxPages;
   private final String fileName;
@@ -16,7 +16,7 @@ class Pages implements Iterable<Page> {
 
   private class PageIterator implements Iterator<Page> {
 
-    private final XMLEventReader reader;
+    private XMLEventReader reader;
     private int remainingPages;
 
     public PageIterator() throws Exception {

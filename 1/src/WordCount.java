@@ -1,4 +1,4 @@
-import java.util.stream.Collectors;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,9 +9,9 @@ public class WordCount {
   static final String fileName = "enwiki.xml";
 
   private static final HashMap<String, Integer> counts = 
-    new HashMap<String, Integer>();
+    new HashMap<>();
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args){
 
     long start = System.currentTimeMillis();
     Iterable<Page> pages = new Pages(maxPages, fileName);
@@ -31,14 +31,10 @@ public class WordCount {
 
     LinkedHashMap<String, Integer> commonWords = new LinkedHashMap<>();
     counts.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())) .forEachOrdered(x -> commonWords.put(x.getKey(), x.getValue()));
-    commonWords.entrySet().stream().limit(3).collect(Collectors.toList()).forEach(x -> System.out.println("Word: \'"+x.getKey()+"\' with total "+x.getValue()+" occurrences!"));
+    commonWords.entrySet().stream().limit(3).toList().forEach(x -> System.out.println("Word: '" +x.getKey()+ "' with total " +x.getValue()+" occurrences!"));
   }
 
   private static void countWord(String word) {
-    Integer currentCount = counts.get(word);
-    if (currentCount == null)
-      counts.put(word, 1);
-    else
-      counts.put(word, currentCount + 1);
+      counts.merge(word, 1, Integer::sum);
   }
 }

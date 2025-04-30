@@ -10,7 +10,7 @@ public class WordCount {
 
     private static final ConcurrentHashMap<String, Integer> counts = new ConcurrentHashMap<>();
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args){
 
 
         ExecutorService executor = Executors.newFixedThreadPool(NUMBER_THREADS);

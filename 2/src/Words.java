@@ -11,7 +11,7 @@ class Words implements Iterable<String> {
 
   private class WordIterator implements Iterator<String> {
 
-    private BreakIterator wordBoundary;
+    private final BreakIterator wordBoundary;
     private int start;
     private int end;
 
