@@ -60,7 +60,7 @@ private static final HashMap<String, Integer> counts = new HashMap<>();
 This sets the maximum number of pages to process, the file name for the Wikipedia data dump, and the map for storing word counts.   
 
 
-### 2. Main Processing Loop
+### 2. Sequential Processing Loop
 
 ```java
 

@@ -1,10 +1,12 @@
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.events.XMLEvent;
+package common;
+
 import java.io.FileInputStream;
 import java.util.Iterator;
+import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
 
-class Pages implements Iterable<Page> {
+public class Pages implements Iterable<Page> {
 
   private final int maxPages;
   private final String fileName;
