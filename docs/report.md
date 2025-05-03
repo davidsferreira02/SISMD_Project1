@@ -109,3 +109,53 @@ System.out.println("Elapsed time: " + (end - start) + "ms");
 ```
 Simple timing mechanism to measure total execution time.
 
+## Multithreaded Solution (Without Thread Pools)
+
+In this solution, we implemented a multithreaded approach where threads are created and managed manually to improve the performance of word counting on a large Wikipedia XML dataset. The primary goal was to leverage multicore processors by distributing the workload across multiple threads, improving execution time compared to the sequential baseline.
+
+### Implementation Strategy
+
+The implementation follows a model inspired by the *producer-consumer* pattern.The `Pages` class acts as a shared queue that stores parsed pages from the XML file. These pages are consumed by a set of worker threads, each responsible for analyzing and counting words in separate pages.
+
+The execution flow is as follows:
+
+1. The main method launches a parser that reads the XML file and adds pages to the shared `Pages` structure.
+2. Simultaneously, a fixed number of threads are created (e.g., 10 or 20).
+3. Each thread retrieves pages from `Pages` and uses a local instance of the `Words` class to count the word frequency.
+4. Once a thread finishes processing, it synchronizes with the shared `Words` instance to merge its results.
+
+### Core Code Snippet
+
+```java
+for (int i = 0; i < numThreads; i++) {
+    Thread t = new Thread(() -> {
+        while (true) {
+            Page page = pages.get();
+            if (page == null) break;
+            Words localWords = new Words();
+            localWords.countWords(page);
+            synchronized (words) {
+                words.merge(localWords);
+            }
+        }
+    });
+    threads[i] = t;
+    t.start();
+}
+``` 
+In this snippet, each thread continuously fetches a page using pages.get(). If there are no more pages, it exits. To ensure thread-safety, the merging of local word counts into the global words object is synchronized.
+
+### Synchronization and Thread Safety
+
+  Each thread uses its own Words instance to avoid direct concurrency. Only the merging phase requires synchronization, reducing contention and allowing threads to operate mostly independently.
+
+### Benefits and Limitations
+
+#### Advantages:
+1. Significant speed-up over the sequential version.
+2.	Fine-grained control over thread lifecycle and behavior.
+
+#### Limitations:
+1.	Manual thread management increases code complexity.
+2.	Not easily scalable for varying system configurations.
+
