@@ -1,16 +1,22 @@
 # Report
+
 ## Introduction
-This project was developed as part of the Sistemas Multinúcleo e Distribuídos (SISMD) 
-course and focuses on exploring and analyzing different parallel and concurrent programming 
-techniques for efficiently processing large volumes of data on multicore systems. 
 
-This study implements and analyzes five distinct approaches to process a large Wikipedia data dump, measuring the frequency of words in English texts, by leveraging the parallel processing capabilities of modern multicore architectures, we aim to demonstrate significant performance improvements over traditional sequential methods. The implementations range from basic multithreading to sophisticated asynchronous programming models, each with distinct characteristics and performance implications.
+This project was developed as part of the Sistemas Multinúcleo e Distribuídos (SISMD)
+course and focuses on exploring and analyzing different parallel and concurrent programming
+techniques for efficiently processing large volumes of data on multicore systems.
 
-The core task—counting word frequencies in large text corpora—represents a common pattern in data processing applications, while  simple, this problem becomes computationally intensive at scale, making it an ideal candidate for parallelization. Our analysis focuses not only on raw performance gains but also on the scalability, resource utilization, and implementation complexity of each approach.
+This study implements and analyzes five distinct approaches to process a large Wikipedia data dump, measuring the frequency of words in English texts. By leveraging the parallel processing capabilities of modern multicore architectures, we aim to demonstrate significant performance improvements over traditional sequential methods. The implementations range from basic multithreading to sophisticated asynchronous programming models, each with distinct characteristics and performance implications.
+
+The core task—counting word frequencies in large text corpora—represents a common pattern in data processing applications, while  simple, this problem becomes computationally intensive at scale, making it an ideal candidate for parallelization. Our analysis focuses not only on raw performance gains but also on the scalability, resource utilization, overhead and bottlenecks.
+
+The project is structured into several sections, each detailing a specific implementation approach, its design considerations, and performance analysis. The report concludes with a summary of findings.
 
 ## Objectives
 
-This project aims to implement and thoroughly analyze different approaches to efficiently process large volumes of textual data on multicore systems, by focusing on the task of word frequency analysis in a Wikipedia data dump, we seek to evaluate the performance characteristics of various concurrency models and identify their strengths and limitations. The specific objectives of this project are:
+This project aims to implement and thoroughly analyze different approaches to efficiently process large volumes of textual data on multicore systems. By focusing on the task of word frequency analysis in a Wikipedia data dump, we seek to evaluate the performance characteristics of various concurrency models, identify their strengths and limitations, and compare them.
+
+The project's objectives are divided into two main categories: implementation and analysis. Implementation objectives focus on developing and optimizing different concurrent solutions, while analysis objectives emphasize measuring performance, resource utilization, and scalability.
 
 ### Implementation Objectives
 
@@ -36,19 +42,16 @@ This project aims to implement and thoroughly analyze different approaches to ef
 
 4. **Identify performance bottlenecks and synchronization overhead** in each concurrent approach.
 
-5. **Assess implementation complexity and maintainability** to understand the trade-offs between performance gains and development effort.
-
-6. **Determine optimal concurrency strategies** for word frequency analysis based on different system configurations and dataset characteristics.
-
+5. **Determine optimal concurrency strategies** for word frequency analysis based on different system configurations and dataset characteristics.
 
 # Implementation Approach
-
 
 ## Sequential Implementation
 
 The sequential implementation processes Wikipedia pages one-by-one, counting word occurrences using a single thread.
 
 ## Core Components
+
 ### 1. Variables
 
 ```java
@@ -57,8 +60,8 @@ static final int maxPages = 100000;
 static final String fileName = "enwiki.xml";
 private static final HashMap<String, Integer> counts = new HashMap<>();
 ```
-This sets the maximum number of pages to process, the file name for the Wikipedia data dump, and the map for storing word counts.   
 
+This sets the maximum number of pages to process, the file name for the Wikipedia data dump, and the map for storing word counts.
 
 ### 2. Sequential Processing Loop
 
@@ -77,7 +80,6 @@ for(Page page: pages) {
 
 This loop iterates through each Wikipedia page, extracts words, and counts them sequentially.
 
-
 ### 3. Word Counting
 
 ```java
@@ -86,6 +88,7 @@ This loop iterates through each Wikipedia page, extracts words, and counts them 
   counts.merge(word, 1, Integer::sum);
 }
 ```
+
 The merge method efficiently updates the count by either inserting a new word with count 1 or incrementing an existing word's count.
 
 ### 4. Results Processing
@@ -101,12 +104,14 @@ counts.entrySet().stream()
 This section sorts words by frequency and stores them in a LinkedHashMap to preserve order.
 
 ### 5. Performance Measurement
+
 ```java
 long start = System.currentTimeMillis();
 // Processing code here
 long end = System.currentTimeMillis();
 System.out.println("Elapsed time: " + (end - start) + "ms");
 ```
+
 Simple timing mechanism to measure total execution time.
 
 ## Multithreaded Solution (Without Thread Pools)
@@ -142,7 +147,8 @@ for (int i = 0; i < numThreads; i++) {
     threads[i] = t;
     t.start();
 }
-``` 
+```
+
 In this snippet, each thread continuously fetches a page using pages.get(). If there are no more pages, it exits. To ensure thread-safety, the merging of local word counts into the global words object is synchronized.
 
 ### Synchronization and Thread Safety
@@ -151,11 +157,12 @@ In this snippet, each thread continuously fetches a page using pages.get(). If t
 
 ### Benefits and Limitations
 
-#### Advantages:
+#### Advantages
+
 1. Significant speed-up over the sequential version.
-2.	Fine-grained control over thread lifecycle and behavior.
+2. Fine-grained control over thread lifecycle and behavior.
 
-#### Limitations:
-1.	Manual thread management increases code complexity.
-2.	Not easily scalable for varying system configurations.
+#### Limitations
 
+1. Manual thread management increases code complexity.
+2. Not easily scalable for varying system configurations.
