@@ -1,7 +1,7 @@
+package common;
 
 
-
-class Page {
+public class Page {
   private final String title;
   private final String text;
 

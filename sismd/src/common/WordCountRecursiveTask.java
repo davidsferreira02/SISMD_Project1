@@ -1,4 +1,4 @@
-/*  Divide a lista de Page em duas metades até o número ser inferior ao THRESHOLD.
+package common;/*  Divide a lista de Page em duas metades até o número ser inferior ao THRESHOLD.
     Conta as palavras em paralelo.
     Junta os resultados de cada sublista num único Map<String, Integer>.
 

@@ -1,9 +1,13 @@
-import java.util.concurrent.ConcurrentHashMap;
+import common.Page;
+import common.Pages;
+import common.Words;
+
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class WordCount {
+public class Multithreaded {
     static final int maxPages = 100000;
     static final String fileName = "enwiki.xml";
     static final int NUMBER_THREADS = 30;

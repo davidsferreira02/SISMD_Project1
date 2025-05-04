@@ -1,9 +1,16 @@
+import common.Page;
+import common.Pages;
+import common.Words;
+
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-public class WordCount {
+public class MultithreadedThreadPools {
     static final int maxPages = 100000;
     static final String fileName = "enwiki.xml";
     static final int NUMBER_THREADS = 30;
@@ -23,21 +30,21 @@ public class WordCount {
             if (page == null) break;
 
             executor.submit(() -> {
-             Iterable<String> words = new Words(page.getText());
-             for(String word : words) {
-                 if (word.length() > 1 || word.equals("a") || word.equals("I")) {
-                     countWord(word);
-                 }
-             }
-                 System.out.println(Thread.currentThread().getName() + "a processar página: " + page.getTitle());
-                 try {
-                     Thread.sleep(100);
-                 } catch (InterruptedException e) {
-                     Thread.currentThread().interrupt();
-                 }
-             });
+                Iterable<String> words = new Words(page.getText());
+                for(String word : words) {
+                    if (word.length() > 1 || word.equals("a") || word.equals("I")) {
+                        countWord(word);
+                    }
+                }
+                System.out.println(Thread.currentThread().getName() + "a processar página: " + page.getTitle());
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
             processedPages++;
-            }
+        }
         executor.shutdown();
         try {
             executor.awaitTermination(5, TimeUnit.SECONDS);

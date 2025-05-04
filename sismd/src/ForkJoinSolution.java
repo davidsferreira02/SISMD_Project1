@@ -1,7 +1,12 @@
+import common.Page;
+import common.Pages;
+import common.WordCountRecursiveTask;
+
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
-public class WordCount {
+public class ForkJoinSolution {
+
     static final int maxPages = 100000;
     static final String fileName = "enwiki.xml";
 
@@ -18,9 +23,9 @@ public class WordCount {
         }
 
         Map<String, Integer> result;
-        try (ForkJoinPool pool = new ForkJoinPool()) {
-            result = pool.invoke(new WordCountRecursiveTask(pages));
-        }
+        ForkJoinPool forkJoinPool = new ForkJoinPool();
+        WordCountRecursiveTask task = new WordCountRecursiveTask(pages);
+        result = forkJoinPool.invoke(task);
         long end = System.currentTimeMillis();
 
 
