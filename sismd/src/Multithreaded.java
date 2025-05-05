@@ -80,7 +80,6 @@ public class Multithreaded {
         long end = System.currentTimeMillis();
         System.out.println("Elapsed time: " + (end - start) + "ms");
 
-        // Print results
         mapReduce.printTopWords(3);
     }
 }
