@@ -81,6 +81,6 @@ public class Multithreaded {
         System.out.println("Elapsed time: " + (end - start) + "ms");
 
         // Print results
-        mapReduce.printTopLetters(3);
+        mapReduce.printTopWords(3);
     }
 }
