@@ -24,8 +24,8 @@ public class Multithreaded {
             Iterable<Page> pages = new Pages(MAX_PAGES, FILE_NAME);
             try {
                 for (Page page : pages) {
-                    if (page == null) break;
-                    queue.put(page); // blocks if queue is full
+                    if (page == null) continue;
+                    queue.put(page);
                     System.out.println("Producer added page: " + page.getTitle());
                 }
             } catch (InterruptedException e) {
