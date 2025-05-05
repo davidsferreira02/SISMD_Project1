@@ -1,7 +1,6 @@
+import common.MapReduce;
 import common.Page;
 import common.Pages;
-import common.Words;
-
 import java.util.concurrent.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,8 +12,9 @@ public class Multithreaded {
     static final int NUM_CONSUMERS = 30;
 
     private static final BlockingQueue<Page> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
-    private static final ConcurrentHashMap<String, Integer> counts = new ConcurrentHashMap<>();
     private static final AtomicBoolean producerDone = new AtomicBoolean(false);
+
+    private static final MapReduce mapReduce = new MapReduce();
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
@@ -26,6 +26,7 @@ public class Multithreaded {
                 for (Page page : pages) {
                     if (page == null) break;
                     queue.put(page); // blocks if queue is full
+                    System.out.println("Producer added page: " + page.getTitle());
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -42,21 +43,18 @@ public class Multithreaded {
                     while (true) {
                         if (producerDone.get() && queue.isEmpty()) break;
 
-                        Page page = null;
+                        Page page;
                         try {
-                            page = queue.take(); // blocks until page is available
+                            page = queue.poll(100, TimeUnit.MILLISECONDS);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             break;
                         }
 
                         if (page != null) {
-                            Iterable<String> words = new Words(page.getText());
-                            for (String word : words) {
-                                if (word.length() > 1 || word.equals("a") || word.equals("I")) {
-                                    counts.merge(word, 1, Integer::sum);
-                                }
-                            }
+                            System.out.println(Thread.currentThread().getName()
+                                    + " processing page: " + page.getTitle());
+                            mapReduce.map(page.getText());
                         }
                     }
                 } catch (Exception e) {
@@ -69,7 +67,7 @@ public class Multithreaded {
         producer.start();
         consumers.forEach(Thread::start);
 
-        // Wait for  threads to finish
+        // Wait for all threads to finish
         try {
             producer.join();
             for (Thread consumer : consumers) {
@@ -82,11 +80,7 @@ public class Multithreaded {
         long end = System.currentTimeMillis();
         System.out.println("Elapsed time: " + (end - start) + "ms");
 
-        counts.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(3)
-                .forEach(entry -> System.out.println(
-                        "Word: '" + entry.getKey() + "' with total " + entry.getValue() + " occurrences!"
-                ));
+        // Print results
+        mapReduce.printTopLetters(3);
     }
 }
