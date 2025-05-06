@@ -8,7 +8,7 @@ public class MapReduce {
     private final ConcurrentMap<String, Integer> wordCounts = new ConcurrentHashMap<>();
 
     public void map(String text) {
-        for (String word : text.split("\\W+")) { // Split by non-word characters
+        for (String word : text.split("\\W+")) {
             if (!word.isEmpty()) {
                 String lower = word.toLowerCase();
                 wordCounts.merge(lower, 1, Integer::sum);
