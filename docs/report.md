@@ -114,55 +114,212 @@ System.out.println("Elapsed time: " + (end - start) + "ms");
 
 Simple timing mechanism to measure total execution time.
 
-## Multithreaded Solution (Without Thread Pools)
+# Multithreaded(No Thread Pool) Implementation
 
-In this solution, we implemented a multithreaded approach where threads are created and managed manually to improve the performance of word counting on a large Wikipedia XML dataset. The primary goal was to leverage multicore processors by distributing the workload across multiple threads, improving execution time compared to the sequential baseline.
+This implementation uses **multithreading** to efficiently process a large Wikipedia XML dump file (`enwiki.xml`). It follows a **producer-consumer model** where a single thread reads pages and multiple threads process them in parallel to count word occurrences.
 
-### Implementation Strategy
+---
 
-The implementation follows a model inspired by the *producer-consumer* pattern.The `Pages` class acts as a shared queue that stores parsed pages from the XML file. These pages are consumed by a set of worker threads, each responsible for analyzing and counting words in separate pages.
+## Implementation Approach
 
-The execution flow is as follows:
+### Multithreaded Design
 
-1. The main method launches a parser that reads the XML file and adds pages to the shared `Pages` structure.
-2. Simultaneously, a fixed number of threads are created (e.g., 10 or 20).
-3. Each thread retrieves pages from `Pages` and uses a local instance of the `Words` class to count the word frequency.
-4. Once a thread finishes processing, it synchronizes with the shared `Words` instance to merge its results.
+Instead of sequentially processing pages, this implementation uses a **blocking queue** to decouple the reading (producer) and processing (consumers) tasks. This enables parallel execution and improves throughput on multi-core systems.
 
-### Core Code Snippet
+
+
+## Core Components
+
+### 1. Configuration Variables
 
 ```java
-for (int i = 0; i < numThreads; i++) {
-    Thread t = new Thread(() -> {
+static final int MAX_PAGES = 100000;
+static final String FILE_NAME = "enwiki.xml";
+static final int QUEUE_CAPACITY = 500;
+static final int NUM_CONSUMERS = 30;
+```
+
+- `MAX_PAGES`: Maximum number of pages to process.
+- `FILE_NAME`: Wikipedia XML file.
+- `QUEUE_CAPACITY`: Size of the shared blocking queue.
+- `NUM_CONSUMERS`: Number of consumer threads for parallel processing.
+
+
+
+### 2. Shared Resources
+
+```java
+private static final BlockingQueue<Page> queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
+private static final AtomicBoolean producerDone = new AtomicBoolean(false);
+private static final MapReduce mapReduce = new MapReduce();
+```
+
+- `queue`: Thread-safe queue to hold pages between producer and consumers.
+- `producerDone`: Indicates when the producer has completed reading.
+- `mapReduce`: Central class for counting words across all threads.
+
+
+
+### 3. Producer Thread
+
+```java
+Thread producer = new Thread(() -> {
+    Iterable<Page> pages = new Pages(MAX_PAGES, FILE_NAME);
+    try {
+        for (Page page : pages) {
+            if (page == null) continue;
+            queue.put(page);
+            System.out.println("Producer added page: " + page.getTitle());
+        }
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    } finally {
+        producerDone.set(true);
+    }
+});
+```
+
+- Reads pages from the XML file.
+- Puts each valid page into the blocking queue.
+- Sets `producerDone = true` once finished.
+
+
+### 4. Consumer Threads
+
+```java
+Thread consumer = new Thread(() -> {
+    try {
         while (true) {
-            Page page = pages.get();
-            if (page == null) break;
-            Words localWords = new Words();
-            localWords.countWords(page);
-            synchronized (words) {
-                words.merge(localWords);
+            if (producerDone.get() && queue.isEmpty()) break;
+
+            Page page = queue.poll(100, TimeUnit.MILLISECONDS);
+            if (page != null) {
+                System.out.println(Thread.currentThread().getName() + " processing page: " + page.getTitle());
+                mapReduce.map(page.getText());
             }
         }
-    });
-    threads[i] = t;
-    t.start();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+});
+```
+
+- Continuously polls the queue.
+- Processes page text with `mapReduce.map()` if available.
+- Exits when producer is done and the queue is empty.
+
+
+
+### 5. Word Counting Logic (MapReduce)
+
+```java
+public void map(String text) {
+    for (String word : text.split("\\W+")) {
+        if (!word.isEmpty()) {
+            String lower = word.toLowerCase();
+            wordCounts.merge(lower, 1, Integer::sum);
+        }
+    }
 }
 ```
 
-In this snippet, each thread continuously fetches a page using pages.get(). If there are no more pages, it exits. To ensure thread-safety, the merging of local word counts into the global words object is synchronized.
+- Splits text using non-word characters.
+- Converts to lowercase.
+- Uses `ConcurrentHashMap.merge()` for thread-safe counting.
 
-### Synchronization and Thread Safety
 
-  Each thread uses its own Words instance to avoid direct concurrency. Only the merging phase requires synchronization, reducing contention and allowing threads to operate mostly independently.
 
-### Benefits and Limitations
+### 6. Results Aggregation
 
-#### Advantages
+```java
+public void printTopWords(int topN) {
+    wordCounts.entrySet().stream()
+        .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+        .limit(topN)
+        .forEach(entry -> 
+            System.out.println("Word: '" + entry.getKey() + "' occurred " + entry.getValue() + " times!"));
+}
+```
 
-1. Significant speed-up over the sequential version.
-2. Fine-grained control over thread lifecycle and behavior.
+- Sorts all words by frequency.
+- Displays the top N most frequent words.
 
-#### Limitations
+# Multithreaded(Thread Pool) Implementation
+This implementation processes a large number of Wikipedia pages using Java’s `ExecutorService` and a fixed thread pool to perform concurrent word counting.
 
-1. Manual thread management increases code complexity.
-2. Not easily scalable for varying system configurations.
+
+
+## Implementation Approach
+
+### Thread Pool Design
+
+Instead of manually managing threads, this version uses a **thread pool** via `Executors.newFixedThreadPool()`. Each task submitted to the pool processes a Wikipedia page, extracting and counting words in parallel.
+
+
+
+## Core Components
+
+### 1. Configuration Variables
+
+```java
+static final int MAX_PAGES = 100000;
+static final String FILE_NAME = "enwiki.xml";
+static final int NUM_THREADS = 30;
+```
+
+- `MAX_PAGES`: Maximum number of pages to process.
+- `FILE_NAME`: Wikipedia XML dump file.
+- `NUM_THREADS`: Number of worker threads in the thread pool.
+
+
+
+
+
+### 2. Executor Service Setup
+
+```java
+ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
+```
+
+- Creates a fixed-size thread pool to manage worker threads.
+- Allows concurrent execution of submitted tasks without manually managing thread lifecycle.
+
+
+
+### 3. Page Processing Loop
+
+```java
+Iterable<Page> pages = new Pages(MAX_PAGES, FILE_NAME);
+
+for (Page page : pages) {
+    if (page == null) continue;
+    executor.execute(() -> mapReduce.map(page.getText()));
+}
+```
+
+- Iterates through all the pages from the file.
+- Each page is submitted to the executor for parallel processing.
+- `mapReduce.map()` is the method that extracts and counts words in a thread-safe way.
+
+
+
+### 4. Graceful Shutdown
+
+```java
+executor.shutdown();
+try {
+    if (!executor.awaitTermination(1, TimeUnit.HOURS)) {
+        executor.shutdownNow();
+    }
+} catch (InterruptedException e) {
+    executor.shutdownNow();
+    Thread.currentThread().interrupt();
+}
+```
+
+- Signals the executor to stop accepting new tasks.
+- Waits up to 1 hour for all tasks to finish.
+- Ensures clean shutdown even if interrupted.
+
+
+# Fork/Join Implementation

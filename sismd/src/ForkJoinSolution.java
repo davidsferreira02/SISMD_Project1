@@ -18,7 +18,7 @@ public class ForkJoinSolution {
         List<Page> pages = new ArrayList<>();
 
         for (Page page : iterablePages) {
-            if (page == null) break;
+            if (page == null) continue;
             pages.add(page);
         }
 
