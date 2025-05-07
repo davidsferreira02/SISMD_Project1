@@ -323,3 +323,76 @@ try {
 
 
 # Fork/Join Implementation
+
+
+## Overview
+
+The Fork/Join implementation uses the `java.util.concurrent.ForkJoinPool` framework, which is ideal for tasks that can be **recursively divided into smaller, independent subtasks**. In this project, a recursive task (`WordCountRecursiveTask`) splits the list of Wikipedia pages and processes word counting in parallel, leveraging **work-stealing** to maximize CPU core utilization.
+
+## Core Components
+
+### Recursive Task Class
+
+```java
+public class WordCountRecursiveTask extends RecursiveTask<Map<String, Integer>> {
+    private final List<Page> pages;
+    private final int start, end;
+    private static final int THRESHOLD = 100;
+
+    public WordCountRecursiveTask(List<Page> pages, int start, int end) {
+        this.pages = pages;
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    protected Map<String, Integer> compute() {
+        if (end - start <= THRESHOLD) {
+            return countWordsSequentially();
+        } else {
+            int mid = (start + end) / 2;
+            var left = new WordCountRecursiveTask(pages, start, mid);
+            var right = new WordCountRecursiveTask(pages, mid, end);
+            left.fork();
+            Map<String, Integer> rightResult = right.compute();
+            Map<String, Integer> leftResult = left.join();
+            return mergeMaps(leftResult, rightResult);
+        }
+    }
+
+    private Map<String, Integer> countWordsSequentially() {
+        Map<String, Integer> result = new HashMap<>();
+        for (int i = start; i < end; i++) {
+            Page page = pages.get(i);
+            for (String word : new Words(page.getText())) {
+                result.merge(word.toLowerCase(), 1, Integer::sum);
+            }
+        }
+        return result;
+    }
+
+    private Map<String, Integer> mergeMaps(Map<String, Integer> a, Map<String, Integer> b) {
+        b.forEach((k, v) -> a.merge(k, v, Integer::sum));
+        return a;
+    }
+}
+  ```
+
+### ForkJoinPool Execution
+```java
+ForkJoinPool pool = new ForkJoinPool();
+List<Page> allPages = StreamSupport.stream(new Pages(MAX_PAGES, FILE_NAME).spliterator(), false)
+        .collect(Collectors.toList());
+WordCountRecursiveTask task = new WordCountRecursiveTask(allPages, 0, allPages.size());
+Map<String, Integer> result = pool.invoke(task);
+```
+    
+### Performance Observations
+ - The Fork/Join approach resulted in efficient workload distribution across threads, with notable performance gains on multi-core systems.
+ - The internal work-stealing algorithm allowed idle threads to dynamically “steal” tasks, improving parallel execution.
+ - Compared to the thread pool implementation, the Fork/Join version showed better scalability on larger datasets.
+
+### Considerations
+- The THRESHOLD value directly affects performance:
+- Low thresholds create many small tasks, increasing overhead.
+- High thresholds reduce parallelism and may underutilize cores.
