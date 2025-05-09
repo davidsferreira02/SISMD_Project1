@@ -396,3 +396,81 @@ Map<String, Integer> result = pool.invoke(task);
 - The THRESHOLD value directly affects performance:
 - Low thresholds create many small tasks, increasing overhead.
 - High thresholds reduce parallelism and may underutilize cores.
+
+# CompletableFuture Implementation
+This implementation processes Wikipedia pages using Java's CompletableFuture API to perform concurrent word counting on a large XML corpus.
+## Implementation Approach
+
+The code uses CompletableFuture to asynchronously process multiple Wikipedia pages, leveraging parallelism without manually managing threads.   
+### Core Components
+### 1. Configuration Variables
+
+```java
+static final int maxPages = 100000;
+static final String fileName = "enwiki.xml";
+static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+```
+- `maxPages`: Maximum number of pages to process.
+- `fileName`: Wikipedia XML file.
+- `THREAD_POOL_SIZE`: Number of threads in the thread pool, set to the number of available processors.
+### 2. Executor Service Setup
+
+```java
+ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+```
+- Creates a fixed-size thread pool to manage worker threads.
+- Provides the execution environment for the CompletableFuture tasks.
+
+### 3. Asynchronous Page Processing
+
+```java
+List<CompletableFuture<Map<String,Integer>>> futures = new ArrayList<>();
+
+for (Page page : pages) {
+    if (page == null) break;
+    CompletableFuture<Map<String,Integer>> future = CompletableFuture.supplyAsync(() -> {
+        Map<String,Integer> localCounts = new HashMap<>();
+        Iterable<String> words = new Words(page.getText());
+        for (String word : words) {
+            if (word.length() > 1 || word.equals("a") || word.equals("I")) {
+                localCounts.merge(word, 1, Integer::sum);
+            }
+        }
+        return localCounts;
+    }, executor);
+    futures.add(future);
+    processedPages++;
+}
+```
+- Each page is processed asynchronously using `CompletableFuture.supplyAsync()`.
+- Each task extracts words and creates a local word frequency map
+- The tasks are submitted to the thread pool and their futures are collected
+
+### 4. Results Aggregation
+
+```java
+CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+allDone.join();
+
+Map<String,Integer> combinedCounts = new HashMap<>();
+for (CompletableFuture<Map<String,Integer>> f : futures) {
+    f.join().forEach((k, v) -> combinedCounts.merge(k, v, Integer::sum));
+}
+```
+
+- `CompletableFuture.allOf()` waits for all tasks to complete.
+- The join() method blocks until all tasks are done.
+- The results from each future are merged into a single map containing the total word counts.
+### 5.Results Processing
+
+```java
+LinkedHashMap<String,Integer> commonWords = new LinkedHashMap<>();
+combinedCounts.entrySet().stream()
+        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+        .forEachOrdered(e -> commonWords.put(e.getKey(), e.getValue()));
+
+commonWords.entrySet().stream().limit(3).toList()
+        .forEach(e -> System.out.println("Word: '" + e.getKey() + "' with total " + e.getValue() + " occurrences!"));
+```
+- The final word counts are sorted and displayed.
+
