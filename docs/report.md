@@ -474,3 +474,102 @@ commonWords.entrySet().stream().limit(3).toList()
 ```
 - The final word counts are sorted and displayed.
 
+#   Garbage Collector Tuning
+
+
+# Concurrency and Synchronization
+## Overview
+This section analyzes the concurrency models and synchronization mechanisms employed across our different implementations, highlighting the strengths, weaknesses, and design considerations of each approach.
+## 1. Sequential Implementation
+The sequential implementation serves as our baseline and involves no concurrency or synchronization mechanisms:
+- **Concurrency Model**: None. The program processes pages one at a time.
+- **Synchronization Mechanisms**: Not applicable. No shared resources or threads to manage.
+- **Thread Safety**: Inherently thread-safe due to single-threaded execution
+- **Data Structures**: Uses a simple `HashMap` for word counting.
+  While this implementation avoids synchronization overhead, it cannot leverage multiple CPU cores, resulting in suboptimal performance on modern multicore systems.
+
+## 2. Multithreaded Implementation (No Thread Pool)
+This implementation employs explicit thread management with a producer-consumer pattern:
+- **Concurrency Model**: Multiple manually created and managed threads
+- **Synchronization Mechanisms:**
+  - **BlockingQueue<Page>** for thread-safe data transfer between producer and consumer threads.
+  - **AtomicBoolean** to signal when the producer has finished processing.
+  - **ConcurrentHashMap** for thread-safe word counting.
+- **Thread Safety**: The use of `BlockingQueue` and `ConcurrentHashMap` ensures thread safety during concurrent access.
+- **Data Structures**: `BlockingQueue` for page transfer, `ConcurrentHashMap` for word counting.
+    
+    The producer-consumer design effectively decouples page reading from processing, allowing these operations to proceed in parallel. However, this implementation faces several synchronization challenges:
+
+- **Thread Management**: Manual thread creation and management can lead to overhead and complexity.
+- **Termination Detection**: Consumers must check both queue emptiness and producer completion flag to determine when to terminate.
+- **Thread Management Overhead**: Manual thread creation and lifecycle management adds complexity
+
+## 3. Multithreaded Implementation (Thread Pool)
+
+The thread pool implementation improves upon the explicit threading model:
+- **Concurrency Model:** Fixed-size thread pool managed by ExecutorService.
+- **Synchronization Mechanisms:** 
+  - **ExecutorService** for managing thread lifecycles.
+  - **ConcurrentHashMap** for thread-safe word counting.
+- **Thread Safety:** The use of `ConcurrentHashMap` ensures thread safety during concurrent access.
+- **Data Structures:** `ExecutorService` for thread management, `ConcurrentHashMap` for word counting.
+
+This implementation addresses the thread management overhead of the previous approach by delegating thread lifecycle management to the ExecutorService, key synchronization aspects include:
+- **Task Submission:** Main thread submits page processing tasks to the executor
+- **Thread reuse:** Instead of creating new threads for each page, the pool reuses a fixed number of worker threads
+- **Termination Handling:** awaitTermination() provides clean synchronization for completion detection
+
+  The thread pool efficiently manages thread resources, preventing the overhead of creating and destroying threads for each task, which can be significant when processing many small tasks.
+
+## 4. Fork/Join
+The Fork/Join implementation uses a divide-and-conquer approach:
+
+- **Concurrency Model:** Work-stealing thread pool specialized for recursive decomposition.
+- **Synchronization Mechanisms:**
+  - **ForkJoinPool** for managing thread lifecycles and work-stealing.
+  - **RecursiveTask** for defining tasks that can be split into subtasks.
+  - **ConcurrentHashMap** for thread-safe word counting.
+- **Thread Safety:** The use of `ConcurrentHashMap` ensures thread safety during concurrent access.
+- **Data Structures:** `ForkJoinPool` for thread management, `ConcurrentHashMap` for word counting.
+
+This implementation employs the following synchronization strategy:
+- **Task Splitting:** Pages are recursively split until reaching a threshold size.
+- **Local Processing:** Each subtask maintains its own HashMap, avoiding synchronization during the computation phase.
+- **Merging Results:** The mergeMaps() method combines results from subtasks, using `ConcurrentHashMap.merge()` for thread-safe updates.
+- **Work-Stealing:** The ForkJoinPool automatically balances workload across threads.
+
+This approach minimizes synchronization overhead by, eliminating shared mutable state during the computation phase
+, deferring synchronization to the join phase and using work-stealing to dynamically balance thread workloads
+
+The threshold value significantly impacts performance by controlling the granularity of parallelism - too small creates excessive overhead, while too large underutilizes available cores.
+
+## 5. CompletableFuture
+
+The CompletableFuture implementation represents a more modern approach to concurrency:
+- **Concurrency Model:** Asynchronous task execution with callbacks.
+- **Synchronization Mechanisms:**
+  - **ExecutorService** for managing thread lifecycles.
+  - **CompletableFuture** for asynchronous task execution and result handling.
+  - **ConcurrentHashMap** for thread-safe word counting.
+- **Thread Safety:** The use of `ConcurrentHashMap` ensures thread safety during concurrent access.
+- **Data Structures:** `ExecutorService` for thread management, `CompletableFuture` for asynchronous task handling, `ConcurrentHashMap` for word counting.
+
+This implementation features sophisticated synchronization patterns:
+- **Isolated State:** Each task operates on its own local HashMap, eliminating write contention.
+- **Future Composition:** CompletableFuture.allOf() coordinates the completion of all tasks.
+- **Explicit Join:** The join() method provides synchronization points for result aggregation.
+  
+
+The key advantage is the clean separation between task submission and result aggregation, with an explicit synchronization point using CompletableFuture.allOf().join()
+, this approach, reduces synchronization overhead during parallel execution, simplifies error handling and task coordination  and provides a more declarative programming model
+## 6. Garbage Collector Tuning
+
+### Overall Comparison
+
+| Implementation | Shared Mutable State | Synchronization Mechanism | Contention Points | Synchronization Overhead |
+|----------------|---------------------|---------------------------|-------------------|--------------------------|
+| Sequential | None | None | None | None |
+| Multithreaded (No Pool) | BlockingQueue, ConcurrentHashMap | Blocking operations, atomic operations | Queue access, map updates | Medium-High |
+| Thread Pool | ConcurrentHashMap | Thread pool internal synchronization | Map updates | Medium |
+| Fork/Join | None during computation | Fork and join operations | Result merging | Low |
+| CompletableFuture | None during computation | Future composition | Result aggregation | Low |
