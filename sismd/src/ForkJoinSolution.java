@@ -11,7 +11,8 @@ public class ForkJoinSolution {
     static final String fileName = "enwiki.xml";
 
     public static void main(String[] args){
-        long start = System.currentTimeMillis();
+        Benchmark benchmark = new Benchmark();
+        benchmark.start();
 
 
         Iterable<Page> iterablePages = new Pages(maxPages, fileName);
@@ -26,11 +27,13 @@ public class ForkJoinSolution {
         ForkJoinPool forkJoinPool = new ForkJoinPool();
         WordCountRecursiveTask task = new WordCountRecursiveTask(pages);
         result = forkJoinPool.invoke(task);
-        long end = System.currentTimeMillis();
+        
+        benchmark.end();
+        benchmark.printResults("ForkJoin", maxPages, 1);
 
 
         System.out.println("Processed pages: " + pages.size());
-        System.out.println("Elapsed time: " + (end - start) + "ms");
+        
 
 
         LinkedHashMap<String, Integer> commonWords = new LinkedHashMap<>();

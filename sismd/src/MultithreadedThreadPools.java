@@ -22,7 +22,9 @@ public class MultithreadedThreadPools {
 
         ExecutorService executor = Executors.newFixedThreadPool(NUMBER_THREADS);
 
-        long start = System.currentTimeMillis();
+        Benchmark benchmark = new Benchmark();
+        benchmark.start();
+
         Iterable<Page> pages = new Pages(maxPages, fileName);
         int processedPages = 0;
 
@@ -52,11 +54,10 @@ public class MultithreadedThreadPools {
             executor.shutdownNow();
         }
 
-
-        long end = System.currentTimeMillis();
+        benchmark.end();
+        benchmark.printResults("Multithreaded with Thread Pools", maxPages, NUMBER_THREADS);
 
         System.out.println("Processed pages: " + processedPages);
-        System.out.println("Elapsed time: " + (end - start) + "ms");
 
         LinkedHashMap<String, Integer> commonWords = new LinkedHashMap<>();
         counts.entrySet().stream()
