@@ -1,0 +1,7 @@
+[0.005s][info][gc] Using G1
+Max pages: 100000
+No more pages!
+Word: 'is' occurred 65 times!
+Word: 'banana' occurred 26 times!
+Word: 'cherry' occurred 26 times!
+Elapsed time: 31ms
