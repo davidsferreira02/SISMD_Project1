@@ -8,10 +8,10 @@ public class MapReduce {
     private final ConcurrentMap<String, Integer> wordCounts = new ConcurrentHashMap<>();
 
     public void map(String text) {
-        for (String word : text.split("\\W+")) {
-            if (!word.isEmpty()) {
-                String lower = word.toLowerCase();
-                wordCounts.merge(lower, 1, Integer::sum);
+        Iterable<String> words = new Words(text);
+        for (String word : words) {
+            if (word.length() > 1 || word.equals("a") || word.equals("I")) {
+                wordCounts.merge(word, 1, Integer::sum);
             }
         }
     }
@@ -24,7 +24,7 @@ public class MapReduce {
         wordCounts.entrySet().stream()
                 .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
                 .limit(topN)
-                .forEach(entry ->
-                        System.out.println("Word: '" + entry.getKey() + "' occurred " + entry.getValue() + " times!"));
+                .forEach(entry -> System.out
+                        .println("Word: '" + entry.getKey() + "' occurred " + entry.getValue() + " times!"));
     }
 }
