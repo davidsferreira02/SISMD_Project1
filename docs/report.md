@@ -564,7 +564,7 @@ The key advantage is the clean separation between task submission and result agg
 , this approach, reduces synchronization overhead during parallel execution, simplifies error handling and task coordination  and provides a more declarative programming model
 ## 6. Garbage Collector Tuning
 
-### Overall Comparison
+## Overall Comparison
 
 | Implementation | Shared Mutable State | Synchronization Mechanism | Contention Points | Synchronization Overhead |
 |----------------|---------------------|---------------------------|-------------------|--------------------------|
