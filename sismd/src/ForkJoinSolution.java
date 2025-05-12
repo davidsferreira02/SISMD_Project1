@@ -2,6 +2,8 @@ import common.Page;
 import common.Pages;
 import common.WordCountRecursiveTask;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
@@ -12,6 +14,11 @@ public class ForkJoinSolution {
 
     public static void main(String[] args){
         long start = System.currentTimeMillis();
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        long cpuTimeBefore = bean.getCurrentThreadCpuTime();
+        Runtime runtime = Runtime.getRuntime();
+        runtime.gc();
+        long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
 
 
         Iterable<Page> iterablePages = new Pages(maxPages, fileName);
@@ -27,10 +34,13 @@ public class ForkJoinSolution {
         WordCountRecursiveTask task = new WordCountRecursiveTask(pages);
         result = forkJoinPool.invoke(task);
         long end = System.currentTimeMillis();
-
+        long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
+        long cpuTimeAfter = bean.getCurrentThreadCpuTime();
 
         System.out.println("Processed pages: " + pages.size());
         System.out.println("Elapsed time: " + (end - start) + "ms");
+        System.out.println("Usage Memory: " + (memoryAfter - memoryBefore) + " bytes");
+        System.out.println("Usage Cpu Time  " + (cpuTimeAfter - cpuTimeBefore) / 1_000_000_000.0 + " seconds");
 
 
         LinkedHashMap<String, Integer> commonWords = new LinkedHashMap<>();

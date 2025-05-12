@@ -1,6 +1,9 @@
 import common.MapReduce;
 import common.Page;
 import common.Pages;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.concurrent.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,6 +21,11 @@ public class Multithreaded {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        long cpuTimeBefore = bean.getCurrentThreadCpuTime();
+        Runtime runtime = Runtime.getRuntime();
+        runtime.gc();
+        long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
 
         // Producer thread
         Thread producer = new Thread(() -> {
@@ -26,7 +34,6 @@ public class Multithreaded {
                 for (Page page : pages) {
                     if (page == null) continue;
                     queue.put(page);
-                    System.out.println("Producer added page: " + page.getTitle());
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -52,8 +59,6 @@ public class Multithreaded {
                         }
 
                         if (page != null) {
-                            System.out.println(Thread.currentThread().getName()
-                                    + " processing page: " + page.getTitle());
                             mapReduce.map(page.getText());
                         }
                     }
@@ -78,7 +83,11 @@ public class Multithreaded {
         }
 
         long end = System.currentTimeMillis();
+        long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
+        long cpuTimeAfter = bean.getCurrentThreadCpuTime();
         System.out.println("Elapsed time: " + (end - start) + "ms");
+        System.out.println("Usage Memory: " + (memoryAfter - memoryBefore) + " bytes");
+        System.out.println("Usage Cpu Time  " + (cpuTimeAfter - cpuTimeBefore) / 1_000_000_000.0 + " seconds");
 
         mapReduce.printTopWords(3);
     }
