@@ -1,0 +1,75 @@
+<style type="text/css">
+#T_3756a table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+  font-size: 12pt;
+}
+#T_3756a th {
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+#T_3756a  td {
+  text-align: center;
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+#T_3756a thead th {
+  background-color: #f2f2f2;
+  color: #333;
+  font-weight: bold;
+}
+#T_3756a tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+#T_3756a caption {
+  caption-side: top;
+  font-weight: bold;
+  font-size: 14pt;
+  margin-bottom: 10px;
+}
+</style>
+<table id="T_3756a">
+  <caption>Performance Metrics - 30 pages</caption>
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_3756a_level0_col0" class="col_heading level0 col0" >CPUTime_mean</th>
+      <th id="T_3756a_level0_col1" class="col_heading level0 col1" >ElapsedTime_mean</th>
+      <th id="T_3756a_level0_col2" class="col_heading level0 col2" >MemoryUsage_mean</th>
+    </tr>
+    <tr>
+      <th class="index_name level1" >Threads</th>
+      <th id="T_3756a_level1_col0" class="col_heading level1 col0" >100000</th>
+      <th id="T_3756a_level1_col1" class="col_heading level1 col1" >100000</th>
+      <th id="T_3756a_level1_col2" class="col_heading level1 col2" >100000</th>
+    </tr>
+    <tr>
+      <th class="index_name level0" >Implementation</th>
+      <th class="blank col0" >&nbsp;</th>
+      <th class="blank col1" >&nbsp;</th>
+      <th class="blank col2" >&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_3756a_level0_row0" class="row_heading level0 row0" >CompletableFutureSolution</th>
+      <td id="T_3756a_row0_col0" class="data row0 col0" >18518.52 ms</td>
+      <td id="T_3756a_row0_col1" class="data row0 col1" >0.555556</td>
+      <td id="T_3756a_row0_col2" class="data row0 col2" >48.555556</td>
+    </tr>
+    <tr>
+      <th id="T_3756a_level0_row1" class="row_heading level0 row1" >Multithreaded</th>
+      <td id="T_3756a_row1_col0" class="data row1 col0" >11185.19 ms</td>
+      <td id="T_3756a_row1_col1" class="data row1 col1" >0.555556</td>
+      <td id="T_3756a_row1_col2" class="data row1 col2" >37.222222</td>
+    </tr>
+    <tr>
+      <th id="T_3756a_level0_row2" class="row_heading level0 row2" >Multithreaded with Thread Pools</th>
+      <td id="T_3756a_row2_col0" class="data row2 col0" >7444.44 ms</td>
+      <td id="T_3756a_row2_col1" class="data row2 col1" >0.555556</td>
+      <td id="T_3756a_row2_col2" class="data row2 col2" >51.555556</td>
+    </tr>
+  </tbody>
+</table>

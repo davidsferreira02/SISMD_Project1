@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -15,16 +16,34 @@ import common.Words;
 import common.Pages;
 
 public class CompletableFutureSolution {
-static final int maxPages = 100000;
-    static final String fileName = "enwiki.xml";
-    static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+    static final int DEFAULT_MAX_PAGES = 100000;
+    static final String DEFAULT_FILE_NAME = "enwiki.xml";
+    static final int DEFAULT_THREAD_POOL_SIZE = 500;
 
     public static void main(String[] args) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        int maxPages = DEFAULT_MAX_PAGES;
+        String fileName = DEFAULT_FILE_NAME;
+        int threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
+        
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("--pages") && i + 1 < args.length) {
+                maxPages = Integer.parseInt(args[i + 1]);
+                i++; // Consume value
+            } else if (args[i].equals("--threads") && i + 1 < args.length) {
+                threadPoolSize = Integer.parseInt(args[i + 1]);
+                i++; // Consume value
+            } else if (args[i].equals("--file") && i + 1 < args.length) {
+                fileName = args[i + 1];
+                i++; // Consume value
+            }
+        }
+        
+        System.out.println("Running with " + threadPoolSize + " threads, " + maxPages + " pages, file: " + fileName);
+        
+        ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
         long start = System.currentTimeMillis();
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-        long cpuTimeBefore = bean.getCurrentThreadCpuTime();
-        Runtime runtime = Runtime.getRuntime();
+        long cpuTimeBefore = bean.getCurrentThreadCpuTime();        Runtime runtime = Runtime.getRuntime();
         runtime.gc();
         long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
 
@@ -59,12 +78,10 @@ static final int maxPages = 100000;
         executor.shutdown();
         long end = System.currentTimeMillis();
         long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
-        long cpuTimeAfter = bean.getCurrentThreadCpuTime();
-
-        System.out.println("Processed pages: " + processedPages);
+        long cpuTimeAfter = bean.getCurrentThreadCpuTime();        System.out.println("Processed pages: " + processedPages);
         System.out.println("Elapsed time: " + (end - start) + "ms");
         System.out.println("Usage Memory: " + (memoryAfter - memoryBefore) + " bytes");
-        System.out.println("Usage Cpu Time  " + (cpuTimeAfter - cpuTimeBefore) / 1_000_000_000.0 + " seconds");
+        System.out.println(String.format(Locale.US, "Usage Cpu Time %.8f seconds", (cpuTimeAfter - cpuTimeBefore) / 1_000_000_000.0));
 
         LinkedHashMap<String,Integer> commonWords = new LinkedHashMap<>();
         combinedCounts.entrySet().stream()
